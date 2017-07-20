@@ -1,4 +1,5 @@
-#### 入口为index.html，随便一个静态服务器都可以，个人比较喜欢`browser-sync`, 即改即看效果，命令请参考：`browser-sync start --server --files '\''**/**.html,**/**.js'\''`
+#### 入口为index.html，随便一个静态服务器都可以，个人比较喜欢`browser-sync`, 即改即看效果
++ 命令请参考：`browser-sync start --server --files '\''**/**.html,**/**.js'\''`
 
 #### 运行
 + node端的代码在nodeServer下
