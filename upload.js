@@ -1,22 +1,30 @@
 let express = require('express')
-let formidable = require("formidable")
-let app = express();
-let fs = require("fs")
-let path = require("path")
+let formidable = require('formidable')
+let app = express()
+let fs = require('fs')
+let path = require('path')
 let concat = require('concat-files')
+let opn = require('opn')
 
-let uploadDir = "uploads"
+let uploadDir = 'nodeServer/uploads'
+
+// 处理静态资源
+app.use(express.static(path.join(__dirname)))
+
 // 处理跨域
 app.all('*', (req, res, next) => {
-    res.header("Access-Control-Allow-Origin", "*");
-    res.header("Access-Control-Allow-Headers", "Content-Type,Content-Length, Authorization, Accept,X-Requested-With");
-    res.header("Access-Control-Allow-Methods", "PUT,POST,GET,DELETE,OPTIONS");
-    res.header("X-Powered-By", ' 3.2.1')
-    if (req.method == "OPTIONS") res.send(200); /*让options请求快速返回*/
-    else next();
+    res.header('Access-Control-Allow-Origin', '*')
+    res.header(
+        'Access-Control-Allow-Headers',
+        'Content-Type,Content-Length, Authorization, Accept,X-Requested-With'
+    )
+    res.header('Access-Control-Allow-Methods', 'PUT,POST,GET,DELETE,OPTIONS')
+    res.header('X-Powered-By', ' 3.2.1')
+    if (req.method == 'OPTIONS') res.send(200) /*让options请求快速返回*/
+    else next()
 })
 
-app.get('/', function (req, resp) {
+app.get('/', function(req, resp) {
     let query = req.query
     resp.send('success!!')
 })
@@ -26,9 +34,13 @@ app.get('/check/file', (req, resp) => {
     let fileName = query.fileName
     let fileMd5Value = query.fileMd5Value
     // 获取文件Chunk列表
-    getChunkList(path.join(uploadDir, fileName), path.join(uploadDir, fileMd5Value), (data) => {
-        resp.send(data)
-    })
+    getChunkList(
+        path.join(uploadDir, fileName),
+        path.join(uploadDir, fileMd5Value),
+        data => {
+            resp.send(data)
+        }
+    )
 })
 
 // 检查chunk的MD5
@@ -40,15 +52,15 @@ app.get('/check/chunk', (req, resp) => {
     fs.stat(path.join(uploadDir, md5, chunkIndex), (err, stats) => {
         if (stats) {
             resp.send({
-                "stat": 1,
-                "exit": true,
-                "desc": "Exit 1"
+                stat: 1,
+                exit: true,
+                desc: 'Exit 1'
             })
         } else {
             resp.send({
-                "stat": 1,
-                "exit": false,
-                "desc": "Exit 0"
+                stat: 1,
+                exit: false,
+                desc: 'Exit 0'
             })
         }
     })
@@ -62,32 +74,35 @@ app.all('/merge', (req, resp) => {
     console.log(md5, fileName)
     mergeFiles(path.join(uploadDir, md5), uploadDir, fileName, size)
     resp.send({
-        "stat": 1
+        stat: 1
     })
 })
 
 app.all('/upload', (req, resp) => {
     var form = new formidable.IncomingForm({
-        uploadDir: "tmp"
+        uploadDir: 'nodeServer/tmp'
     })
-    form.parse(req, function (err, fields, file) {
+    form.parse(req, function(err, fields, file) {
         let index = fields.index
         let total = fields.total
         let fileMd5Value = fields.fileMd5Value
         let folder = path.join('uploads', fileMd5Value)
         folderIsExit(folder).then(() => {
             let destFile = path.join(folder, fields.index)
-            copyFile(file.data.path, destFile).then((successLog) => {
-                resp.send({
-                    "stat": 1,
-                    "desc": index
-                })
-            }, (errorLog) => {
-                resp.send({
-                    "stat": 0,
-                    "desc": "Error"
-                })
-            })
+            copyFile(file.data.path, destFile).then(
+                successLog => {
+                    resp.send({
+                        stat: 1,
+                        desc: index
+                    })
+                },
+                errorLog => {
+                    resp.send({
+                        stat: 0,
+                        desc: 'Error'
+                    })
+                }
+            )
         })
     })
     // 文件夹是否存在, 不存在则创建文件
@@ -109,7 +124,7 @@ app.all('/upload', (req, resp) => {
     // 把文件从一个目录拷贝到别一个目录
     function copyFile(src, dest) {
         let promise = new Promise((resolve, reject) => {
-            fs.rename(src, dest, (err) => {
+            fs.rename(src, dest, err => {
                 if (err) {
                     reject(err)
                 } else {
@@ -119,11 +134,6 @@ app.all('/upload', (req, resp) => {
         })
         return promise
     }
-
-
-})
-app.listen(5000, () => {
-    console.log('Listen Success!!')
 })
 
 // 获取文件Chunk列表
@@ -138,7 +148,7 @@ async function getChunkList(filePath, folderPath, callback) {
                 isExist: true,
                 name: filePath
             },
-            desc: "file is exist"
+            desc: 'file is exist'
         }
     } else {
         let isFolderExist = await isExist(folderPath)
@@ -151,7 +161,7 @@ async function getChunkList(filePath, folderPath, callback) {
         result = {
             stat: 1,
             chunkList: fileList,
-            desc: "folder list"
+            desc: 'folder list'
         }
     }
     callback(result)
@@ -189,10 +199,15 @@ async function mergeFiles(srcDir, targetDir, newFileName, size) {
     let fileArr = await listDir(srcDir)
     // 把文件名加上文件夹的前缀
     for (let i = 0; i < fileArr.length; i++) {
-        fileArr[i] = srcDir + "/" + fileArr[i]
+        fileArr[i] = srcDir + '/' + fileArr[i]
     }
     console.log(fileArr)
     concat(fileArr, path.join(targetDir, newFileName), () => {
         console.log('Merge Success@!')
     })
 }
+
+app.listen(5000, () => {
+    console.log('服务启动完成，端口监听5000！')
+    opn('http://localhost:5000')
+})

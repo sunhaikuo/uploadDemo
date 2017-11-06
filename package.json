@@ -1,0 +1,22 @@
+{
+    "name": "uploader",
+    "description": "a demo for web uploader",
+    "version": "0.0.1",
+    "private": true,
+    "author": {
+        "name": "sunhaikuo",
+        "email": "sunhaikuo@163.com"
+    },
+    "dependencies": {
+        "concat-files": "^0.1.1",
+        "express": "^4.15.2",
+        "formidable": "^1.0.15",
+        "opn": "^5.1.0"
+    },
+    "scripts": {
+        "start": "node uplaod.js"
+    },
+    "engines": {
+        "node": ">=0.10.25"
+    }
+}

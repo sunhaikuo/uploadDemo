@@ -186,12 +186,6 @@
 
                 loadNext();
             })
-
-
-            // let name = file.name;
-            // let size = file.size;
-            // let lastModified = file.lastModified;
-            // return md5(name + "-" + size + "-" + lastModified);
         }
         // 2.校验文件的MD5
         function checkFileMD5(fileName, fileMd5Value) {
@@ -250,17 +244,8 @@
         function notifyServer(fileMd5Value) {
             let url = baseUrl + '/merge?md5=' + fileMd5Value + "&fileName=" + file.name + "&size=" + file.size
             $.getJSON(url, function (data) {
-                addLog('上传成功' + data)
+                alert('上传成功')
             })
-        }
-
-        function addLog(log) {
-            let current = $("#tip").html()
-            current += getDate()
-            current += '-----'
-            current += log
-            current += '<br/>'
-            $("#tip").html(current)
         }
 
         function getDate() {
