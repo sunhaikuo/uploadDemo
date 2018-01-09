@@ -15,7 +15,7 @@
         "opn": "^5.1.0"
     },
     "scripts": {
-        "start": "node uplaod.js"
+        "start": "node upload.js"
     },
     "engines": {
         "node": ">=0.10.25"
