@@ -1,7 +1,7 @@
 let express = require('express')
 let formidable = require('formidable')
 let app = express()
-let fs = require('fs')
+let fs = require('fs-extra')
 let path = require('path')
 let concat = require('concat-files')
 let opn = require('opn')
@@ -86,9 +86,10 @@ app.all('/upload', (req, resp) => {
         let index = fields.index
         let total = fields.total
         let fileMd5Value = fields.fileMd5Value
-        let folder = path.join('uploads', fileMd5Value)
-        folderIsExit(folder).then(() => {
-            let destFile = path.join(folder, fields.index)
+        let folder = path.resolve(__dirname, 'nodeServer/uploads', fileMd5Value)
+        folderIsExit(folder).then(val => {
+            let destFile = path.resolve(folder, fields.index)
+            console.log('----------->', file.data.path, destFile)
             copyFile(file.data.path, destFile).then(
                 successLog => {
                     resp.send({
@@ -107,19 +108,12 @@ app.all('/upload', (req, resp) => {
     })
     // 文件夹是否存在, 不存在则创建文件
     function folderIsExit(folder) {
-        let promise = new Promise((resolve, reject) => {
-            fs.stat(folder, (err, stats) => {
-                // 文件夹不存在
-                if (err && err.code === 'ENOENT') {
-                    fs.mkdir(folder, () => {
-                        resolve()
-                    })
-                } else {
-                    resolve()
-                }
-            })
+        console.log('folderIsExit', folder)
+        return new Promise(async (resolve, reject) => {
+            let result = await fs.ensureDirSync(path.join(folder))
+            console.log('result----', result)
+            resolve(true)
         })
-        return promise
     }
     // 把文件从一个目录拷贝到别一个目录
     function copyFile(src, dest) {
@@ -185,6 +179,10 @@ function isExist(filePath) {
 function listDir(path) {
     return new Promise((resolve, reject) => {
         fs.readdir(path, (err, data) => {
+            if (err) {
+                reject(err)
+                return
+            }
             // 把mac系统下的临时文件去掉
             if (data && data.length > 0 && data[0] === '.DS_Store') {
                 data.splice(0, 1)
@@ -195,6 +193,7 @@ function listDir(path) {
 }
 // 合并文件
 async function mergeFiles(srcDir, targetDir, newFileName, size) {
+    console.log(...arguments)
     let targetStream = fs.createWriteStream(path.join(targetDir, newFileName))
     let fileArr = await listDir(srcDir)
     // 把文件名加上文件夹的前缀
@@ -203,7 +202,7 @@ async function mergeFiles(srcDir, targetDir, newFileName, size) {
     }
     console.log(fileArr)
     concat(fileArr, path.join(targetDir, newFileName), () => {
-        console.log('Merge Success@!')
+        console.log('Merge Success!')
     })
 }
 
