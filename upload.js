@@ -194,7 +194,7 @@ function listDir(path) {
 // 合并文件
 async function mergeFiles(srcDir, targetDir, newFileName, size) {
     console.log(...arguments)
-    let targetStream = fs.createWriteStream(path.join(targetDir, newFileName))
+    //let targetStream = fs.createWriteStream(path.join(targetDir, newFileName))
     let fileArr = await listDir(srcDir)
     let filetmp =  [];
     // 把文件名加上文件夹的前缀
