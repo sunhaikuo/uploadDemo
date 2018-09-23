@@ -24,8 +24,8 @@ app.all('*', (req, res, next) => {
     else next()
 })
 
-app.get('/', function(req, resp) {
-    let query = req.query
+app.get('/', function (req, resp) {
+    // let query = req && req.query
     resp.send('success!!')
 })
 // 检查文件的MD5
@@ -82,29 +82,30 @@ app.all('/upload', (req, resp) => {
     var form = new formidable.IncomingForm({
         uploadDir: 'nodeServer/tmp'
     })
-    form.parse(req, function(err, fields, file) {
-        let index = fields.index
-        let total = fields.total
-        let fileMd5Value = fields.fileMd5Value
-        let folder = path.resolve(__dirname, 'nodeServer/uploads', fileMd5Value)
-        folderIsExit(folder).then(val => {
-            let destFile = path.resolve(folder, fields.index)
-            console.log('----------->', file.data.path, destFile)
-            copyFile(file.data.path, destFile).then(
-                successLog => {
-                    resp.send({
-                        stat: 1,
-                        desc: index
-                    })
-                },
-                errorLog => {
-                    resp.send({
-                        stat: 0,
-                        desc: 'Error'
-                    })
-                }
-            )
-        })
+    form.parse(req, function (err, fields, file) {
+        if (Object.keys(fields).length) {
+            let index = fields.index
+            let total = fields.total
+            let fileMd5Value = fields.fileMd5Value
+            let folder = path.resolve(__dirname, 'nodeServer/uploads', fileMd5Value)
+            folderIsExit(folder).then(val => {
+                let destFile = path.resolve(folder, fields.index)
+                copyFile(file.data.path, destFile).then(
+                    successLog => {
+                        resp.send({
+                            stat: 1,
+                            desc: index
+                        })
+                    },
+                    errorLog => {
+                        resp.send({
+                            stat: 0,
+                            desc: 'Error'
+                        })
+                    }
+                ).catch(e => console.log(e))
+            })
+        }
     })
     // 文件夹是否存在, 不存在则创建文件
     function folderIsExit(folder) {
